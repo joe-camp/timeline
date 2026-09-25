@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chronos — Interactive Historical Timeline</title>
+  <meta name="description"
+    content="Explore humanity's greatest milestones across eras in a smooth, interactive historical timeline.">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Outfit:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet">
+
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <!-- Ambient background glow elements -->
+  <div class="ambient-glow glow-1"></div>
+  <div class="ambient-glow glow-2"></div>
+  <div class="ambient-grid"></div>
+
+  <!-- Top Navigation / Hero Header -->
+  <header class="app-header" id="appHeader">
+    <div class="header-inner">
+      <div class="header-top-bar">
+        <div class="brand">
+          <div class="brand-icon">
+            <i data-lucide="hourglass"></i>
+          </div>
+          <div>
+            <h1 class="brand-title">CHRONOS</h1>
+            <p class="brand-subtitle">Interactive Chronology & Historical Archives</p>
+          </div>
+        </div>
+
+        <!-- Mobile Expand/Collapse Toggle Button (Visible on mobile only) -->
+        <button class="mobile-toggle-btn" id="mobileHeaderToggle" aria-label="Toggle options and search"
+          aria-expanded="false" title="Search & Options">
+          <i data-lucide="sliders-horizontal" class="toggle-icon-default"></i>
+          <i data-lucide="x" class="toggle-icon-close" style="display: none;"></i>
+          <span class="mobile-toggle-text">Options</span>
+        </button>
+      </div>
+
+      <!-- Expandable Controls & Actions Drawer (Inline on Desktop, Toggleable on Mobile) -->
+      <div class="header-expandable" id="headerExpandable">
+        <div class="header-actions">
+          <div class="dataset-picker-group">
+            <label for="datasetSelect" class="picker-label"><i data-lucide="database"></i> Dataset:</label>
+            <select id="datasetSelect" class="dataset-select">
+              <option value="civil_rights_events.csv">US Civil Rights Movement (1863–1968)</option>
+              <option value="roman_leaders.csv">Roman Leaders & Emperors (753 BCE – 476 AD)</option>
+              <option value="ww2_events.csv">World War II (1939–1945)</option>
+              <option value="events.csv">Historical Eras (3 Milestones)</option>
+            </select>
+          </div>
+          <button class="btn btn-secondary" id="openAddModalBtn">
+            <i data-lucide="plus-circle"></i>
+            <span>Add Event</span>
+          </button>
+          <label class="btn btn-primary file-upload-label" for="csvFileInput">
+            <i data-lucide="upload"></i>
+            <span>Import CSV</span>
+            <input type="file" id="csvFileInput" accept=".csv,text/csv" class="hidden-input">
+          </label>
+        </div>
+
+        <!-- Controls Bar -->
+        <div class="controls-bar">
+          <div class="search-box">
+            <i data-lucide="search" class="search-icon"></i>
+            <input type="text" id="searchInput" placeholder="Search events, keywords, or type any year (e.g. 1943, 44 BCE)..." autocomplete="off">
+            <button id="clearSearchBtn" class="clear-btn" style="display: none;">
+              <i data-lucide="x"></i>
+            </button>
+          </div>
+
+          <div class="view-stats">
+            <span id="eventCountBadge" class="stats-badge">18 Events</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Timeline Container -->
+  <main class="timeline-wrapper">
+    <div class="timeline-container" id="timelineContainer">
+      <!-- Central Glowing Spine -->
+      <div class="timeline-spine">
+        <div class="timeline-spine-progress" id="timelineSpineProgress"></div>
+      </div>
+
+      <!-- Timeline event items dynamically injected here -->
+      <div class="timeline-events" id="timelineEvents">
+        <!-- Rendered by app.js -->
+      </div>
+
+      <!-- Empty State -->
+      <div class="empty-state" id="emptyState" style="display: none;">
+        <div class="empty-icon"><i data-lucide="compass"></i></div>
+        <h3>No Historical Events Found</h3>
+        <p>No events match your current search query. Try changing your search keywords or importing another CSV file.
+        </p>
+        <button class="btn btn-primary" id="emptyResetBtn">Reset Search</button>
+      </div>
+    </div>
+  </main>
+
+  <!-- Event Detail Modal -->
+  <div class="modal-backdrop" id="detailModalBackdrop">
+    <div class="modal-card" id="detailModal">
+      <button class="modal-close-btn" id="closeDetailModalBtn" aria-label="Close details">
+        <i data-lucide="x"></i>
+      </button>
+      <div class="modal-image-container" id="modalImageContainer">
+        <img src="" alt="Event visual" id="modalImage">
+        <div class="modal-image-overlay"></div>
+      </div>
+      <div class="modal-content">
+        <div class="modal-badge-row">
+          <span class="date-badge-large" id="modalDate">DATE</span>
+          <span class="location-badge-large" id="modalLocationBadge" style="display: none;">
+            <i data-lucide="map-pin" style="width:16px;height:16px;"></i>
+            <span id="modalLocationText"></span>
+          </span>
+          <span class="duration-badge-large" id="modalDurationBadge" style="display: none;">
+            <i data-lucide="clock" style="width:16px;height:16px;"></i>
+            <span id="modalDurationText"></span>
+          </span>
+        </div>
+        <h2 class="modal-title" id="modalTitle">Event Title</h2>
+        <div class="modal-body-text" id="modalDescription"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add New Event Modal -->
+  <div class="modal-backdrop" id="addModalBackdrop">
+    <div class="modal-card form-modal" id="addModal">
+      <button class="modal-close-btn" id="closeAddModalBtn" aria-label="Close dialog">
+        <i data-lucide="x"></i>
+      </button>
+      <div class="form-modal-header">
+        <div class="form-modal-icon"><i data-lucide="calendar-plus"></i></div>
+        <div>
+          <h2>Add Historical Event</h2>
+          <p>Record a new event in the chronological timeline</p>
+        </div>
+      </div>
+      <form id="addEventForm" class="add-event-form">
+        <div class="form-row">
+          <div class="form-group flex-1">
+            <label for="eventDateInput">Date (MM/DD/YYYY or YYYY) *</label>
+            <input type="text" id="eventDateInput" placeholder="e.g. 09/01/1939 or 1939" required>
+          </div>
+          <div class="form-group w-auto">
+            <label for="eventEraSelect">Era *</label>
+            <select id="eventEraSelect" required>
+              <option value="AD" selected>AD (Anno Domini / CE)</option>
+              <option value="BCE">BCE (Before Common Era)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="eventLabelInput">Short Label / Title *</label>
+          <input type="text" id="eventLabelInput" placeholder="e.g. Invasion of Poland" required maxlength="120">
+        </div>
+
+        <div class="form-group">
+          <label for="eventLocationInput">Location (Optional)</label>
+          <input type="text" id="eventLocationInput" placeholder="e.g. Poland / Eastern Europe">
+        </div>
+
+        <div class="form-group">
+          <label for="eventDescInput">Long Text Description *</label>
+          <textarea id="eventDescInput" rows="4" placeholder="Detailed historical narrative and context..."
+            required></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="eventImageInput">Image Source Link (Optional URL)</label>
+          <input type="url" id="eventImageInput" placeholder="https://example.com/image.jpg">
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" id="cancelAddBtn">Cancel</button>
+          <button type="submit" class="btn btn-primary">
+            <i data-lucide="check"></i> Add to Timeline
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div class="toast" id="toast">
+    <i data-lucide="info" class="toast-icon"></i>
+    <span class="toast-message" id="toastMessage">Notification message</span>
+  </div>
+
+  <!-- Back to Top Button -->
+  <button class="back-to-top-btn" id="backToTopBtn" aria-label="Back to top" title="Return to top of timeline">
+    <i data-lucide="chevron-up"></i>
+  </button>
+
+  <!-- Footer -->
+  <footer class="app-footer">
+    <div class="footer-content">
+      <p><strong>Chronos Timeline</strong> — Loaded from <code>events.csv</code> / <code>ww2_events.csv</code></p>
+      <p class="footer-sub">Earlier events at top &bull; Later events downwards &bull; Seamless BCE/AD chronological
+        parser</p>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+
+</html>
